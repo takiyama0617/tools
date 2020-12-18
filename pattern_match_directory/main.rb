@@ -35,6 +35,7 @@ def pattern_match_directory(target, pattern, output)
 
   # カレントディレクトリを移動
   i = 0
+  error_dirs = []
   FileUtils.cd(target) do
     targert_dirs = []
     Dir.glob("./#{pattern}") do |d|
@@ -42,12 +43,21 @@ def pattern_match_directory(target, pattern, output)
 
       i += 1
     end
-    puts targert_dirs
-    FileUtils.mkdir_p(output)
-    FileUtils.mv(targert_dirs, output, {:noop => true, :verbose => true})
-  end
-  puts i
-end
 
+    # 移動先のディレクトリを作成
+    FileUtils.mkdir_p(output)
+
+    # 移動
+    targert_dirs.each do |dir|
+      begin
+        FileUtils.mv(dir, output, { verbose: true })
+      rescue => ex
+        error_dirs << dir
+      end
+    end
+  end
+  puts "合計: #{i}フォルダ"
+  puts "copy失敗: #{error_dirs}"
+end
 
 main if $PROGRAM_NAME == __FILE__
