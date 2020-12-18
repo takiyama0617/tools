@@ -1,37 +1,38 @@
 require 'optparse'
 require 'fileutils'
 
+Version = "1.0.0"
+
 def main
-  target = nil
-  pattern = nil
-  output = nil
+  options = {}
   OptionParser.new do |opts|
-    opts.on('-t targert_directory', '--target', 'target directory') do |v|
-      return 'hoge' unless v
-
-      target = v
+    opts.on('-t targert_directory', '--target', '処理対象のディレクトリパスを指定') do |v|
+      options[:target] = v
     end
 
-    opts.on('-p pattern', '--pattern', 'pattern') do |v|
-      return 'hoge' unless v
-
-      pattern = v
+    opts.on('-p pattern', '--pattern', '抽出するディレクトリ名の正規表現を指定') do |v|
+      options[:pattern] = v
     end
 
-    opts.on('-o output', '--output', 'output') do |v|
-      return 'hoge' unless v
-
-      output = v
+    opts.on('-o output', '--output', '正規表現にマッチしたディレクトリの移動先') do |v|
+      options[:output] = v
     end
   end.parse!
 
-  pattern ||= '*'
+  unless options.size == 3
+    STDERR.puts "コマンドライン引数が不足してます。"
+    exit 1
+  end
+
   pattern_match_directory(target, pattern, output)
 end
 
 def pattern_match_directory(target, pattern, output)
   # ディレクトリの存在確認
-  return 'ng' unless Dir.exist?(target)
+  unless Dir.exist?(target)
+    STDERR.puts "[-t]引数で指定したディレクトリが存在しません。"
+    exit 1
+  end
 
   # カレントディレクトリを移動
   i = 0
@@ -56,8 +57,8 @@ def pattern_match_directory(target, pattern, output)
       end
     end
   end
-  puts "合計: #{i}フォルダ"
-  puts "copy失敗: #{error_dirs}"
+  puts "処理対象: #{i}フォルダ"
+  puts "move失敗: #{error_dirs}"
 end
 
 main if $PROGRAM_NAME == __FILE__
