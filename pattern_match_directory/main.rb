@@ -24,7 +24,7 @@ def main
     exit 1
   end
 
-  pattern_match_directory(target, pattern, output)
+  pattern_match_directory(options[:target], options[:pattern], options[:output])
 end
 
 def pattern_match_directory(target, pattern, output)
