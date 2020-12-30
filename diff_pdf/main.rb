@@ -1,6 +1,10 @@
 require 'optparse'
+require 'yaml'
+require 'open3'
+require 'fileutils'
 
 Version = '1.0.0'
+@setting = nil
 
 def main
   options = {}
@@ -26,20 +30,52 @@ def main
     end
   end.parse!
 
+  @setting = load_yaml
+  puts @setting
   puts options
+
+  diff_pdf(options)
 end
 
 def diff_pdf(options)
+  # ディレクトリの存在確認
+  unless Dir.exist?(options[:target])
+    STDERR.puts '[-t]引数で指定したディレクトリが存在しません。'
+    exit 1
+  end
 
+  FileUtils.cd(options[:target]) do
+    before_files = []
+    after_files = []
+
+    Dir.glob("./*/#{options[:b_file_pattern]}*.pdf") do |f|
+      before_files << File.expand_path(f)
+    end
+
+    Dir.glob("./*/#{options[:a_file_pattern]}*.pdf") do |f|
+      after_files << File.expand_path(f)
+    end
+
+    puts before_files
+    puts '================'
+    puts after_files
+
+    args = []
+    args << '-s' if options[:skip]
+    args << '-m' if options[:mark]
+
+    run(format(@setting['diff-pdf'], { ROOT_DIR: __dir__ }), args)
+  end
 end
 
-
-def run(options)
-
+def run(exe, args)
+  args.flatten!
+  puts exe
+  o, e, ret = Open3.capture3(exe, *args)
 end
 
 def load_yaml
-  
+  YAML.load_file(File.join(__dir__, 'setting.yml'))
 end
 
 main if $PROGRAM_NAME == __FILE__
