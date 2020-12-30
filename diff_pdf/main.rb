@@ -56,26 +56,36 @@ def diff_pdf(options)
       after_files << File.expand_path(f)
     end
 
-    puts before_files
-    puts '================'
-    puts after_files
-
-    args = []
-    args << '-s' if options[:skip]
-    args << '-m' if options[:mark]
-
-    run(format(@setting['diff-pdf'], { ROOT_DIR: __dir__ }), args)
+    diff_file_list(before_files, after_files).each do |obj|
+      args = []
+      args << '-s' if options[:skip]
+      args << '-m' if options[:mark]
+      args << "--output-diff=#{obj.parents_dir}/diff.pdf"
+      # args << '--view'
+      args << "#{obj.before}"
+      args << "#{obj.after}"
+      run(format(@setting['diff-pdf'], { ROOT_DIR: __dir__ }), args)
+  
+    end
   end
 end
 
 def run(exe, args)
   args.flatten!
-  puts exe
   o, e, ret = Open3.capture3(exe, *args)
 end
 
 def load_yaml
   YAML.load_file(File.join(__dir__, 'setting.yml'))
+end
+
+def diff_file_list(before_files, after_files)
+  file_list = []
+  before_files.zip(after_files) do |b, a|
+    obj = Struct.new(:before, :after, :parents_dir)
+    file_list << obj.new(b, a, File.dirname(b))
+  end
+  file_list
 end
 
 main if $PROGRAM_NAME == __FILE__
