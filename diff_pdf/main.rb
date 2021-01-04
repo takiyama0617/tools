@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'optparse'
 require 'yaml'
 require 'open3'
@@ -40,7 +42,7 @@ end
 def diff_pdf(options)
   # ディレクトリの存在確認
   unless Dir.exist?(options[:target])
-    STDERR.puts '[-t]引数で指定したディレクトリが存在しません。'
+    warn '[-t]引数で指定したディレクトリが存在しません。'
     exit 1
   end
 
@@ -56,16 +58,16 @@ def diff_pdf(options)
       after_files << File.expand_path(f)
     end
 
+    # PDFの比較
     diff_file_list(before_files, after_files).each do |obj|
       args = []
       args << '-s' if options[:skip]
       args << '-m' if options[:mark]
       args << "--output-diff=#{obj.parents_dir}/diff.pdf"
       # args << '--view'
-      args << "#{obj.before}"
-      args << "#{obj.after}"
-      run(format(@setting['diff-pdf'], { ROOT_DIR: __dir__ }), args)
-  
+      args << obj.before.to_s
+      args << obj.after.to_s
+      _, _, ret = run(format(@setting['diff-pdf'], { ROOT_DIR: __dir__ }), args)
     end
   end
 end
