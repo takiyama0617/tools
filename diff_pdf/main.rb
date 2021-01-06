@@ -4,6 +4,7 @@ require 'optparse'
 require 'yaml'
 require 'open3'
 require 'fileutils'
+require 'pp'
 
 Version = '1.0.0'
 @setting = nil
@@ -33,9 +34,6 @@ def main
   end.parse!
 
   @setting = load_yaml
-  puts @setting
-  puts options
-
   diff_pdf(options)
 end
 
@@ -59,6 +57,7 @@ def diff_pdf(options)
     end
 
     # PDFの比較
+    differences = []
     diff_file_list(before_files, after_files).each do |obj|
       args = []
       args << '-s' if options[:skip]
@@ -68,7 +67,13 @@ def diff_pdf(options)
       args << obj.before.to_s
       args << obj.after.to_s
       _, _, ret = run(format(@setting['diff-pdf'], { ROOT_DIR: __dir__ }), args)
+
+      differences << obj.parents_dir unless ret.success?
     end
+
+    puts "全体：#{before_files.size}, 差分ありファイル数: #{differences.size}"
+    puts '差分ありファイルがあるディレクトリは、以下'
+    pp differences
   end
 end
 
