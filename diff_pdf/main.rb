@@ -28,7 +28,7 @@ def main
       options[:skip] = v
     end
 
-    opts.on('-m', '--mark-differences', '右側に相違箇所にしるしを付ける') do |v|
+    opts.on('-m', '--mark-differences', '左側に相違箇所にしるしを付ける') do |v|
       options[:mark] = v
     end
   end.parse!
