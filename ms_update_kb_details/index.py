@@ -3,9 +3,10 @@ import csv
 import pprint
 import requests
 from bs4 import BeautifulSoup
+import datetime
 
 
-def csv_load(file):
+def load_csv(file):
     """
     CSVファイルをloadする
     """
@@ -16,6 +17,19 @@ def csv_load(file):
         h_csv.append(row)
     print(h_csv)
     return h_csv
+
+
+def write_csv(data):
+    """
+    データをCSVファイルに書き込む
+    ファイル名は、result_YYYYMMDD.csv
+    """
+    fn = 'result_' + datetime.date.today().strftime('%Y%m%d') + '.csv'
+    with open(f'./output/{fn}', 'w') as csv_file:
+        writer = csv.DictWriter(csv_file, fieldnames=['url', 'problem'])
+        writer.writeheader()
+        for d in data:
+            writer.writerow(d)
 
 
 def make_kb_support_urls(kb_list):
@@ -62,11 +76,12 @@ def request_ms_help_page(url):
 
 
 if __name__ == '__main__':
+    pprint.pprint('Start!')
     parser = argparse.ArgumentParser(description="Get KBXXXXX Information.")
     parser.add_argument('-f', '--file')
     args = parser.parse_args()
 
-    url_list = make_kb_support_urls(csv_load(args.file))
+    url_list = make_kb_support_urls(load_csv(args.file))
 
     pprint.pprint(url_list)
 
@@ -75,5 +90,10 @@ if __name__ == '__main__':
         problem = request_ms_help_page(url)
         if len(problem) == 0:
             continue
-        result.append({url: problem})
-    pprint.pprint(result)
+        result.append(
+            {
+                'url': url,
+                'problem': problem
+            })
+    write_csv(result)
+    pprint.pprint('Finish!')
