@@ -57,3 +57,5 @@ build-iPhoneSimulator/
 
 ms_update_kb_details/output/*
 !ms_update_kb_details/output/.gitkeep
+
+.DS_Store
