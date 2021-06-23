@@ -1,15 +1,14 @@
-import argparse
-import csv
 import pprint
 import bs4
 import requests
 from bs4 import BeautifulSoup
 import time
 import typing as tp
+import json
 
 
 def html_soup(res: tp.Type[requests.Response]):
-    return BeautifulSoup(res.text, 'html.parser')
+    return BeautifulSoup(res.content, 'html.parser')
 
 
 def title(bsoup: tp.Type[bs4.BeautifulSoup]):
@@ -27,10 +26,30 @@ def description(bsoup: tp.Type[bs4.BeautifulSoup]):
 def keyword(bsoup: tp.Type[bs4.BeautifulSoup]):
     return bsoup.find('meta', {'name': 'keyword'})
 
+
+def h1(bsoup: tp.Type[bs4.BeautifulSoup]):
+    h1s = bsoup.find_all('h1')
+    result = []
+    for h in h1s:
+        if h.text.strip() != '':
+            result.append(h.text.strip())
+    return result
+
+
+def h2(bsoup: tp.Type[bs4.BeautifulSoup]):
+    h2s = bsoup.find_all('h2')
+    result = []
+    for h in h2s:
+        if h.text.strip() != '':
+            result.append(h.text.strip())
+    return result
+
+
 def get_request(url: str):
     return requests.get(
         url=url, headers={'Accept-Language': 'ja'}
     )
+
 
 def get_edw_applications_urls():
     url = 'https://www.ricoh.co.jp/solutions/edw-application'
@@ -46,8 +65,8 @@ def get_edw_applications_urls():
         if url.startswith('/'):
             url = 'https://www.ricoh.co.jp' + url
         urls.append(url)
-    # pprint.pprint(urls)
     return urls
+
 
 if __name__ == '__main__':
     pprint.pprint('Start!')
@@ -59,11 +78,15 @@ if __name__ == '__main__':
         result.append(
             {
                 'url': url,
-                'title':title(bsoup),
-                'description': description(bsoup)
+                'title': title(bsoup),
+                'description': description(bsoup),
+                'h1': h1(bsoup),
+                'h2': h2(bsoup)
             }
         )
         time.sleep(2)
-    pprint.pprint(result)
+    
+    with open('mydata.json', mode='wt', encoding='utf-8') as file:
+        json.dump(result, file, ensure_ascii=False, indent=2)
 
     pprint.pprint('Finish!')
