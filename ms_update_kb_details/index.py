@@ -53,7 +53,8 @@ def request_ms_help_page(url):
     r = requests.get(
         url, headers={'Accept-Language': 'ja,en-US;q=0.9,en;q=0.8'})
     if r.status_code != 200:
-        raise Exception('HTTP STATUS is not 200.')
+        pprint.pprint('http_status is not 200 ', url, r.status_code)
+        return []
 
     html_soup = BeautifulSoup(r.text, 'html.parser')
     sections = html_soup.find_all('section', class_='ocpSection')
