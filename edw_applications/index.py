@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 import time
 import typing as tp
 import json
+from tqdm import tqdm
 
 
 def html_soup(res: tp.Type[requests.Response]):
@@ -55,7 +56,8 @@ def get_edw_applications_urls():
     url = 'https://www.ricoh.co.jp/solutions/edw-application'
     r = get_request(url)
     if r.status_code != 200:
-        raise Exception('HTTP STATUS is not 200.')
+        pprint.pprint('http_status is not 200 ', url, r.status_code)
+        return []
 
     bsoup = html_soup(r)
     section = bsoup.find('section', class_='recommend bg_c1d')
@@ -73,7 +75,7 @@ if __name__ == '__main__':
 
     urls = get_edw_applications_urls()
     result = []
-    for url in urls:
+    for url in tqdm(urls):
         bsoup = html_soup(get_request(url))
         result.append(
             {
@@ -86,7 +88,7 @@ if __name__ == '__main__':
         )
         time.sleep(2)
     
-    with open('mydata.json', mode='wt', encoding='utf-8') as file:
+    with open('./output/mydata.json', mode='wt', encoding='utf-8') as file:
         json.dump(result, file, ensure_ascii=False, indent=2)
 
     pprint.pprint('Finish!')
