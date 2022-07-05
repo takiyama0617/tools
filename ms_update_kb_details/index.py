@@ -10,12 +10,11 @@ def load_csv(file):
     """
     CSVファイルをloadする
     """
-    csv_file = open(file=file)
-    f = csv.reader(csv_file, delimiter=',')
-    h_csv = []
-    for row in f:
-        h_csv.append(row)
-    print(h_csv)
+    with open(file=file, encoding='utf-8') as csv_file:
+        h_csv = []
+        for row in csv.reader(csv_file, delimiter=','):
+            h_csv.append(row)
+        print(h_csv)
     return h_csv
 
 
@@ -24,12 +23,12 @@ def write_csv(data):
     データをCSVファイルに書き込む
     ファイル名は、result_YYYYMMDD.csv
     """
-    fn = 'result_' + datetime.date.today().strftime('%Y%m%d') + '.csv'
-    with open(f'./output/{fn}', 'w') as csv_file:
+    file_name = 'result_' + datetime.date.today().strftime('%Y%m%d') + '.csv'
+    with open(f'./output/{file_name}', 'w', encoding='utf-8') as csv_file:
         writer = csv.DictWriter(csv_file, fieldnames=['url', 'problem'])
         writer.writeheader()
-        for d in data:
-            writer.writerow(d)
+        for row in data:
+            writer.writerow(row)
 
 
 def make_kb_support_urls(kb_list):
@@ -50,24 +49,24 @@ def request_ms_help_page(url):
 
     更新プログラムに既知の問題がある場合、その現象と回避策の情報をスクレイピングする
     """
-    r = requests.get(
+    response = requests.get(
         url, headers={'Accept-Language': 'ja,en-US;q=0.9,en;q=0.8'})
-    if r.status_code != 200:
-        pprint.pprint('http_status is not 200 ', url, r.status_code)
+    if response.status_code != 200:
+        pprint.pprint('http_status is not 200 ', url, response.status_code)
         return []
 
-    html_soup = BeautifulSoup(r.text, 'html.parser')
+    html_soup = BeautifulSoup(response.text, 'html.parser')
     sections = html_soup.find_all('section', class_='ocpSection')
     values = []
 
     for section in sections:
-        if section.h2 == None:
+        if section.h2 is None:
             continue
         if section.h2.text != 'この更新プログラムに関する既知の問題':
             continue
 
         table = section.find('table', class_='banded')
-        if table == None:
+        if table is None:
             break
 
         for row in table.find_all('tr')[1:]:
